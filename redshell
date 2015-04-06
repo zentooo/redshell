@@ -28,31 +28,33 @@ def subcommand_add_related_tickets(args):
         except (redmine.exceptions.ValidationError, redmine.exceptions.ResourceError) as e:
             print("x")
 
+def build_parser():
+    parser = argparse.ArgumentParser(prog="redshell")
+    subparsers = parser.add_subparsers(help="sub-command help")
+    
+    parser_shell = subparsers.add_parser("shell")
+    parser_shell.set_defaults(func=subcommand_shell)
+    
+    parser_uv = subparsers.add_parser("update_versions")
+    parser_uv.add_argument("--query_id", type=str, help="filter query id")
+    parser_uv.add_argument("--version", type=str, help="version for updating")
+    parser_uv.set_defaults(func=subcommand_update_versions)
+    
+    parser_art = subparsers.add_parser("add_related_tickets")
+    parser_art.add_argument("--target", type=str, required=True, help="target ticket id")
+    parser_art.add_argument("--query_id", type=str, help="filter query id")
+    parser_art.add_argument("--ids", nargs="+", type=int, help="ticket ids")
+    parser_art.set_defaults(func=subcommand_add_related_tickets)
+
+    return parser
+
+if not "REDMINE_URL" in os.environ:
+    sys.exit("Please specify envinronment variable: 'REDMINE_URL'")
 if not "REDMINE_API_TOKEN" in os.environ:
     sys.exit("Please specify envinronment variable: 'REDMINE_API_TOKEN'")
 
-parser = argparse.ArgumentParser(prog="redshell")
-subparsers = parser.add_subparsers(help="sub-command help")
+redmine = Redmine(os.environ["REDMINE_URL"], key=os.environ["REDMINE_API_TOKEN"])
 
-parser_shell = subparsers.add_parser("shell")
-parser_shell.set_defaults(func=subcommand_shell)
-
-parser_uv = subparsers.add_parser("update_versions")
-parser_uv.add_argument("--project", type=str, help="project name")
-parser_uv.add_argument("--category", type=str, help="category name")
-parser_uv.set_defaults(func=subcommand_update_versions)
-
-parser_art = subparsers.add_parser("add_related_tickets")
-parser_art.add_argument("--project", type=str, help="project name")
-parser_art.add_argument("--target", type=str, required=True, help="target ticket id")
-parser_art.add_argument("--category", type=str, help="filter category name")
-parser_art.add_argument("--status", type=str, help="filter status")
-parser_art.add_argument("--ids", nargs="+", type=int, help="ticket ids")
-parser_art.set_defaults(func=subcommand_add_related_tickets)
-
-redmine = Redmine("http://localhost:3000", key=os.environ["REDMINE_API_TOKEN"])
-#redmine = Redmine("http://redmine.a-saas.com/", key=os.environ["REDMINE_API_TOKEN"])
-
+parser = build_parser()
 args = parser.parse_args()
 args.func(args)
-
