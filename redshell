@@ -3,30 +3,59 @@
 import os
 import sys
 import argparse
+import pprint
+from distutils.util import strtobool
 from redmine import Redmine
 from IPython import embed
 
-#def create_project_dict():
-    #return { project.name: project.id for project in redmine.project.all() }
+def create_project_dict():
+    return { project.name: project.id for project in redmine.project.all() }
+
+def prompt(query):
+   sys.stdout.write('%s [y/n]: ' % query)
+   val = raw_input()
+   try:
+       ret = strtobool(val)
+   except ValueError:
+       sys.stdout.write('Please answer with a y/n\n')
+       return prompt(query)
+   return ret
 
 def subcommand_shell(args):
     embed()
+
+def subcommand_show_projects(args):
+    project_dict = create_project_dict()
+    for name in project_dict:
+        print(name + " => " + str(project_dict[name]))
 
 def subcommand_update_versions(args):
     embed()
 
 def subcommand_add_related_tickets(args):
-    target_issue = redmine.issue.get(args.target)
-    if args.ids:
-        ids = args.ids
+    target_issue = redmine.issue.get(args.target_issue_id)
+    issues = []
+    if args.issue_ids:
+        issues = [redmine.issue.get(id) for id in args.issue_ids]
     else:
-        embed()
+        issues = redmine.issue.filter(project_id=args.project_id, query_id=args.query_id)
 
-    for id in ids:
-        try:
-            redmine.issue_relation.create(issue_id=args.target, issue_to_id=id)
-        except (redmine.exceptions.ValidationError, redmine.exceptions.ResourceError) as e:
-            print("x")
+    print("-------------------------------------------------------------------------")
+    for issue in issues:
+        print("* [" + str(issue.id) + "] " + issue.subject)
+    print("-------------------------------------------------------------------------")
+
+    doit = prompt("Is it OK to make relation between ticket \n\n\"" + target_issue.subject + "\"\n\n and tickets above?")
+
+    if doit:
+        ids = args.issue_ids or [issue.id for issue in issues]
+        for id in ids:
+            try:
+                redmine.issue_relation.create(issue_id=args.target_issue_id, issue_to_id=id)
+            except (redmine.exceptions.ValidationError, redmine.exceptions.ResourceError) as e:
+                print("x")
+
+        print("DONE.")
 
 def build_parser():
     parser = argparse.ArgumentParser(prog="redshell")
@@ -34,16 +63,21 @@ def build_parser():
     
     parser_shell = subparsers.add_parser("shell")
     parser_shell.set_defaults(func=subcommand_shell)
+
+    parser_sp = subparsers.add_parser("show_projects")
+    parser_sp.set_defaults(func=subcommand_show_projects)
     
     parser_uv = subparsers.add_parser("update_versions")
     parser_uv.add_argument("--query_id", type=str, help="filter query id")
     parser_uv.add_argument("--version", type=str, help="version for updating")
+    parser_uv.add_argument("--issue_ids", nargs="+", type=int, help="ticket ids")
     parser_uv.set_defaults(func=subcommand_update_versions)
     
     parser_art = subparsers.add_parser("add_related_tickets")
-    parser_art.add_argument("--target", type=str, required=True, help="target ticket id")
+    parser_art.add_argument("--target_issue_id", type=str, required=True, help="target ticket id")
+    parser_art.add_argument("--project_id", type=str, help="project id")
     parser_art.add_argument("--query_id", type=str, help="filter query id")
-    parser_art.add_argument("--ids", nargs="+", type=int, help="ticket ids")
+    parser_art.add_argument("--issue_ids", nargs="+", type=int, help="ticket ids")
     parser_art.set_defaults(func=subcommand_add_related_tickets)
 
     return parser
@@ -56,6 +90,7 @@ if not "REDMINE_API_TOKEN" in os.environ:
     sys.exit("Please specify envinronment variable: 'REDMINE_API_TOKEN'")
 
 redmine = Redmine(os.environ["REDMINE_URL"], key=os.environ["REDMINE_API_TOKEN"])
+pp = pprint.PrettyPrinter(indent=4)
 
 parser = build_parser()
 args = parser.parse_args()
