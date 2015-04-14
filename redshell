@@ -38,12 +38,15 @@ def subcommand_add_related_tickets(args):
     if args.issue_ids:
         issues = [redmine.issue.get(id) for id in args.issue_ids]
     else:
-        issues = redmine.issue.filter(project_id=args.project_id, query_id=args.query_id)
+        issues = redmine.issue.filter(query_id=args.query_id)
 
     print("-------------------------------------------------------------------------")
     for issue in issues:
         print("* [" + str(issue.id) + "] " + issue.subject)
     print("-------------------------------------------------------------------------")
+
+    if args.debug:
+        return
 
     doit = prompt("Is it OK to make relation between ticket \n\n\"" + target_issue.subject + "\"\n\n and tickets above?")
 
@@ -55,7 +58,7 @@ def subcommand_add_related_tickets(args):
             except (redmine.exceptions.ValidationError, redmine.exceptions.ResourceError) as e:
                 print("x")
 
-        print("DONE.")
+        print("\nDONE.")
 
 def build_parser():
     parser = argparse.ArgumentParser(prog="redshell")
@@ -71,13 +74,14 @@ def build_parser():
     parser_uv.add_argument("--query_id", type=str, help="filter query id")
     parser_uv.add_argument("--version", type=str, help="version for updating")
     parser_uv.add_argument("--issue_ids", nargs="+", type=int, help="ticket ids")
+    parser_uv.add_argument("--debug", action="store_true", help="debug print")
     parser_uv.set_defaults(func=subcommand_update_versions)
     
     parser_art = subparsers.add_parser("add_related_tickets")
     parser_art.add_argument("--target_issue_id", type=str, required=True, help="target ticket id")
-    parser_art.add_argument("--project_id", type=str, help="project id")
     parser_art.add_argument("--query_id", type=str, help="filter query id")
     parser_art.add_argument("--issue_ids", nargs="+", type=int, help="ticket ids")
+    parser_art.add_argument("--debug", action="store_true", help="debug print")
     parser_art.set_defaults(func=subcommand_add_related_tickets)
 
     return parser
