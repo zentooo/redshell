@@ -35,7 +35,7 @@ Set environment veriables below:
 * REDMINE\_API\_TOKEN
  * Get it on redmine's user setting page. example: http://redmine.com/my/account)
 
-## Function
+## Subcommands
 
 ### Show projects
 
@@ -48,11 +48,11 @@ redshell projects
 #### with query\_id
 
 ```shell
-redshell add\_related\_tickets --target\_issue\_id $issue\_id --query\_id $query\_id
+redshell add_related_tickets --target_issue_id [issue_id] --query_id [query_id]
 ```
 
 #### with issue\_ids
 
 ```shell
-redshell add\_related\_tickets --target\_issue\_id $issue\_id --issue\_ids $issue\_id\_1 $issue\_iid\_2 ...
+redshell add_related_tickets --target_issue_id [issue_id] --issue_ids [issue_id_1] [issue_id_2] ...
 ```
