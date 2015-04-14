@@ -2,14 +2,16 @@
 
 redshells is interactive shell and shortcut tools for Redmine.
 
-This tool is mainly for executing *batch* request to Redmine. For example:
+This tool is mainly for executing *batch request* to Redmine. For example:
 
 * create related tickets for the specified ticket at once
 * set version for multiple tickets
 
 and so on.
 
-Generic query condition support is annoying and we do not want to do try-and-error on command line tool, so issue filtering strategy is implemented by only two ways:
+## Issue query support
+
+Generic query support is annoying, so issue filtering strategy is implemented as only two ways:
 
 * specify all issue\_ids
 * specify query\_id, which of created custom query on redmine
@@ -18,7 +20,7 @@ That's it.
 
 ## Required libraries
 
-Install these libraries with pip or easy\_install.
+Install these libraries with pip or easy\_install
 
 * argparse
 * python-redmine
@@ -35,9 +37,22 @@ Set environment veriables below:
 
 ## Function
 
-* redshell projects
- * show projects
+### Show projects
 
-* redshell add\_related\_tickets --target\_issue\_id $issue\_id --query\_id $query\_id
-* redshell add\_related\_tickets --target\_issue\_id $issue\_id --issue\_ids $issue\_id\_1, $issue\_iid\_2, ...
- * create related tickets at once
+```shell
+redshell projects
+```
+
+### Create related tickets
+
+#### with query\_id
+
+```shell
+redshell add\_related\_tickets --target\_issue\_id $issue\_id --query\_id $query\_id
+```
+
+#### with issue\_ids
+
+```shell
+redshell add\_related\_tickets --target\_issue\_id $issue\_id --issue\_ids $issue\_id\_1 $issue\_iid\_2 ...
+```
