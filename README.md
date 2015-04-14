@@ -15,6 +15,7 @@ Generic query support is annoying, so issue filtering strategy is implemented as
 
 * specify all issue\_ids
 * specify query\_id, which of created custom query on redmine
+ * When to use query\_id for condition, you have to make the custom query for all projects.
 
 That's it.
 
